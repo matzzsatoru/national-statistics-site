@@ -1,0 +1,148 @@
+/* Statistik Indonesia — palet sendiri: hijau hutan, krem kertas, aksen terakota.
+   Hanya font sistem: serif Georgia untuk judul, sans sistem untuk isi. */
+
+:root {
+  --ink: #1d2b23;
+  --muted: #5c6b60;
+  --paper: #faf6ee;
+  --card: #ffffff;
+  --green: #0e4d3a;
+  --green-2: #14684f;
+  --teal: #2a7f6f;
+  --amber: #c96f2e;
+  --line: #e3dcc9;
+  --line-strong: #cfc6ab;
+  --focus: #b4452f;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.5rem; }
+h2 { font-size: 1.7rem; }
+h3 { font-size: 1.25rem; }
+p { margin: 0 0 0.8em; }
+
+a { color: var(--green-2); }
+a:hover { color: var(--amber); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ---- Header ---- */
+.site-header { background: var(--green); color: #fff; }
+.header-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; padding-top: 14px; padding-bottom: 14px; }
+.brand { display: flex; align-items: center; gap: 12px; color: #fff; text-decoration: none; }
+.brand:hover { color: #ffe9c9; }
+.brand-mark { font-size: 2rem; line-height: 1; color: #f2b25c; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.25; }
+.brand-text strong { font-family: Georgia, serif; font-size: 1.3rem; }
+.brand-text span:last-child { font-size: 0.8rem; opacity: 0.85; }
+.nav { display: flex; flex-wrap: wrap; gap: 2px 4px; margin-left: auto; }
+.nav a { color: #dcebe2; text-decoration: none; padding: 7px 11px; border-radius: 6px; font-size: 0.95rem; }
+.nav a:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.nav a.active { background: #fff; color: var(--green); font-weight: 700; }
+
+/* ---- Hero & halaman ---- */
+#app { padding-top: 28px; padding-bottom: 40px; }
+.hero { padding: 10px 0 20px; border-bottom: 3px solid var(--green); margin-bottom: 20px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.8rem; font-weight: 700; color: var(--amber); margin-bottom: 10px; }
+.lede { font-size: 1.15rem; max-width: 720px; color: #33413a; }
+.hero-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.btn { display: inline-block; background: var(--green-2); color: #fff; text-decoration: none; font-weight: 700; padding: 10px 18px; border-radius: 8px; }
+.btn:hover { background: var(--green); color: #fff; }
+.btn.ghost { background: transparent; color: var(--green-2); border: 2px solid var(--green-2); }
+.btn.ghost:hover { background: var(--green-2); color: #fff; }
+
+.sec-head { margin: 6px 0 22px; }
+.sec-head p { color: var(--muted); max-width: 720px; margin-top: 8px; }
+
+/* ---- Kartu & KPI ---- */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin-bottom: 22px; }
+.card h3 { margin-bottom: 8px; }
+.card-blurb { color: var(--muted); }
+.src { font-size: 0.85rem; color: var(--muted); margin: 10px 0 0; }
+.muted { color: var(--muted); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+.kpi-grid.small { grid-template-columns: repeat(4, 1fr); }
+.kpi { background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--teal); border-radius: 10px; padding: 16px 16px 12px; }
+.kpi-value { font-family: Georgia, serif; font-size: 1.9rem; font-weight: 700; color: var(--green); line-height: 1.1; }
+.kpi-label { font-size: 0.92rem; margin-top: 4px; }
+.kpi-src { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+.split .card { margin-bottom: 22px; }
+
+.fact-list { list-style: none; padding: 0; margin: 0; }
+.fact-list li { padding: 9px 0; border-bottom: 1px solid var(--line); }
+.fact-list li:last-child { border-bottom: 0; }
+.fact-list.two-col { columns: 2; column-gap: 28px; }
+.fact-list.two-col li { break-inside: avoid; }
+
+.update { border-top: 4px solid var(--amber); }
+
+.topic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+.topic-grid a { display: block; text-decoration: none; color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--paper); }
+.topic-grid a:hover { border-color: var(--teal); background: #f2f7f3; }
+.topic-grid strong { display: block; font-family: Georgia, serif; font-size: 1.1rem; color: var(--green); }
+.topic-grid span { font-size: 0.9rem; color: var(--muted); }
+
+/* ---- Grafik & kontrol ---- */
+.chart-card .card-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.chart-wrap { margin-top: 6px; }
+.chart { width: 100%; height: auto; display: block; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.toggle { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+.toggle button { appearance: none; border: 0; background: #fff; color: var(--ink); font: inherit; font-size: 0.85rem; font-weight: 600; padding: 7px 12px; cursor: pointer; }
+.toggle button + button { border-left: 1px solid var(--line-strong); }
+.toggle button:hover { background: #f2f7f3; }
+.toggle button.active { background: var(--green-2); color: #fff; }
+
+/* ---- Tabel provinsi ---- */
+.prov-tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 20px; margin-bottom: 14px; }
+.search-box { font-weight: 700; font-size: 0.95rem; }
+.search-box input { display: block; margin-top: 6px; width: min(420px, 100%); font: inherit; font-weight: 400; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 8px; background: #fff; color: var(--ink); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.prov-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 640px; }
+.prov-table th, .prov-table td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+.prov-table thead th { background: var(--green); color: #fff; font-size: 0.88rem; position: sticky; top: 0; }
+.prov-table th[data-sort] { cursor: pointer; white-space: nowrap; }
+.prov-table th[data-sort]:hover { background: var(--green-2); }
+.prov-table th.sorted { background: var(--amber); }
+.prov-table tbody tr:nth-child(even) { background: #f7f3e8; }
+.prov-table tbody tr:hover { background: #eef4ee; }
+.prov-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.empty { text-align: center; color: var(--muted); padding: 22px !important; }
+
+/* ---- Footer ---- */
+.site-footer { background: var(--green); color: #dcebe2; padding: 26px 0 34px; font-size: 0.92rem; }
+.site-footer a { color: #f2b25c; }
+.site-footer p { margin-bottom: 8px; }
+
+/* ---- HP ---- */
+@media (max-width: 760px) {
+  h1 { font-size: 1.9rem; }
+  h2 { font-size: 1.45rem; }
+  .header-inner { gap: 10px; }
+  .nav { margin-left: 0; }
+  .nav a { padding: 6px 8px; font-size: 0.88rem; }
+  .kpi-grid, .kpi-grid.small { grid-template-columns: repeat(2, 1fr); }
+  .kpi-value { font-size: 1.5rem; }
+  .split { grid-template-columns: 1fr; }
+  .topic-grid { grid-template-columns: 1fr; }
+  .fact-list.two-col { columns: 1; }
+  .card { padding: 16px; }
+  .lede { font-size: 1.05rem; }
+}

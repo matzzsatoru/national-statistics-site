@@ -1,0 +1,34 @@
+[
+  {
+    "file": "1-cover.jpg",
+    "path": "#/",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "file": "2-ekonomi.jpg",
+    "path": "#/ekonomi",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "file": "3-provinsi.jpg",
+    "path": "#/provinsi",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "file": "4-phone.jpg",
+    "path": "#/penduduk",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]
