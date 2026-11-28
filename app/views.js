@@ -15,17 +15,34 @@ import {
   POVERTY,
   PROVINCES,
   STUNTING,
+  TILEMAP,
   UNEMPLOYMENT,
   UPDATE_2025,
   fmtId,
   fmtPopThousands,
+  popByName,
 } from './data.js';
-import { barChart, hbarChart, lineChart, stackedBar } from './charts.js';
+import { barChart, donutChart, hbarChart, lineChart, sparkline, stackedBar, tileLegend, tileMap } from './charts.js';
 
 const SRC = (text) => `<p class="src">Sumber: ${text}</p>`;
 
 function kpiCard(h) {
-  return `<div class="kpi"><div class="kpi-value">${h.value}</div><div class="kpi-label">${h.label}</div><div class="kpi-src">${h.source}</div></div>`;
+  const delta = h.delta
+    ? `<div class="kpi-delta ${h.deltaDir || ''}">${h.delta}</div>`
+    : '';
+  const spark = h.spark ? `<div class="kpi-spark">${sparkline(h.spark, { color: h.sparkColor || '#14684f' })}</div>` : '';
+  return `<div class="kpi${h.accent ? ' accent-' + h.accent : ''}"><div class="kpi-value">${h.value}</div><div class="kpi-label">${h.label}</div>${delta}${spark}<div class="kpi-src">${h.source}</div></div>`;
+}
+
+// Peta petak 38 provinsi + baris info provinsi yang diklik.
+// tiles: [{name, col, row, pop}]; dark = di atas latar gelap.
+export function tileMapBlock(dark = false) {
+  const tiles = TILEMAP.map((t) => ({ ...t, pop: popByName(t.name) }));
+  return `<div class="map-block">
+    <div class="map-wrap">${tileMap(tiles, { dark, cell: 40 })}</div>
+    ${tileLegend(dark)}
+    <p class="map-readout" id="map-readout">Klik salah satu petak untuk melihat provinsinya — warna menunjukkan jumlah penduduk: terakota berarti di atas 30 juta jiwa.</p>
+  </div>`;
 }
 
 function sectionHead(title, blurb) {
@@ -69,7 +86,7 @@ export function popChartHtml(range, type) {
   const fmt = (v) => fmtId(v, 1);
   return type === 'line'
     ? lineChart(points, { title: 'Jumlah penduduk Indonesia', format: fmt })
-    : barChart(points, { title: 'Jumlah penduduk Indonesia', format: fmt });
+    : barChart(points, { title: 'Jumlah penduduk Indonesia', format: fmt, highlightLast: true });
 }
 
 export function gdpChartHtml(type) {
@@ -77,26 +94,54 @@ export function gdpChartHtml(type) {
   const fmt = (v) => 'Rp' + fmtId(v, 0) + ' T';
   return type === 'line'
     ? lineChart(points, { title: 'PDB Indonesia', format: fmt })
-    : barChart(points, { title: 'PDB Indonesia', format: fmt });
+    : barChart(points, { title: 'PDB Indonesia', format: fmt, highlightLast: true });
 }
 
 // ---- Beranda ----
 export function viewHome(state) {
-  const kpis = Object.values(HEADLINE).map(kpiCard).join('');
+  // Selisih 2024 vs 2023, dihitung dari deret di data.js (bukan angka baru).
+  const perCapita = GDP_NOMINAL.map((g) => {
+    const p = POPULATION_BY_YEAR.find((x) => x.year === g.year);
+    return g.value / p.pop;
+  });
+  const homeKpis = [
+    { ...HEADLINE.population, delta: '▲ +1,04% dari 2023', deltaDir: 'good', spark: POPULATION_BY_YEAR.map((r) => r.pop), accent: 'teal' },
+    { ...HEADLINE.gdp, delta: '▲ +5,98% dari 2023', deltaDir: 'good', spark: GDP_NOMINAL.map((r) => r.value), sparkColor: '#c96f2e', accent: 'amber' },
+    { ...HEADLINE.growth, delta: '▼ 0,02 poin dari 2023', deltaDir: 'bad', spark: GDP_GROWTH.map((r) => r.value), sparkColor: '#b4452f', accent: 'green' },
+    { ...HEADLINE.gdpPerCapita, delta: '▲ +4,87% dari 2023', deltaDir: 'good', spark: perCapita, sparkColor: '#c96f2e', accent: 'amber' },
+    { ...HEADLINE.poverty, delta: '▼ 0,79 poin — terendah sepanjang sejarah BPS', deltaDir: 'good', spark: POVERTY.map((r) => r.value), sparkColor: '#14684f', accent: 'green' },
+    { ...HEADLINE.unemployment, delta: '▼ 0,41 poin dari 2023', deltaDir: 'good', spark: UNEMPLOYMENT.map((r) => r.value), accent: 'green' },
+    { ...HEADLINE.inflation, delta: '▼ 1,04 poin dari 2023', deltaDir: 'good', spark: INFLATION.map((r) => r.value), sparkColor: '#c96f2e', accent: 'amber' },
+    { ...HEADLINE.hdi, delta: '▲ +0,63 poin dari 2023', deltaDir: 'good', spark: HDI.map((r) => r.value), accent: 'teal' },
+  ];
+  const kpis = homeKpis.map(kpiCard).join('');
   const updates = UPDATE_2025.map((u) => `<li><strong>${u.value}</strong> — ${u.label}</li>`).join('');
   return `
-  <section class="hero">
-    <p class="eyebrow">Indonesia dalam angka · Edisi 2024</p>
-    <h1>Statistik Indonesia,<br>dirangkum jadi satu halaman.</h1>
-    <p class="lede">Penduduk, ekonomi, pekerjaan, pendidikan, dan kesehatan — angka resmi
-    dari BPS dan Kemenkes, lengkap dengan tahun dan sumbernya. Tanpa iklan, tanpa
-    login, bisa dibuka offline.</p>
-    <div class="hero-links">
-      <a class="btn" href="#/penduduk">Penduduk</a>
-      <a class="btn" href="#/ekonomi">Ekonomi</a>
-      <a class="btn" href="#/provinsi">38 Provinsi</a>
-      <a class="btn ghost" href="#/tentang">Lihat sumber data</a>
+  <section class="hero-dark">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Indonesia dalam angka · Edisi 2024 · BPS &amp; Kemenkes</p>
+        <h1>281,6 juta jiwa.<br>Satu peta.<br>Semua angkanya.</h1>
+        <p class="lede">Penduduk, ekonomi, pekerjaan, pendidikan, dan kesehatan — angka resmi
+        dari BPS dan Kemenkes, lengkap dengan tahun dan sumbernya. Tanpa iklan, tanpa
+        login, bisa dibuka offline.</p>
+        <div class="hero-links">
+          <a class="btn amber" href="#/provinsi">Jelajahi 38 provinsi</a>
+          <a class="btn" href="#/ekonomi">Lihat ekonomi</a>
+          <a class="btn ghost-light" href="#/tentang">Sumber data</a>
+        </div>
+        <p class="hero-chips">8 halaman · 38 provinsi · 0 iklan · Bisa offline</p>
+      </div>
+      <div class="hero-map">
+        ${tileMapBlock(true)}
+      </div>
     </div>
+  </section>
+
+  <section class="story-strip" aria-label="Indonesia dalam tiga angka">
+    <div class="story"><div class="story-num">56%</div><div class="story-text">penduduk tinggal di Pulau Jawa — Jawa Barat sendiri 50,35 juta jiwa</div></div>
+    <div class="story"><div class="story-num">7 dari 10</div><div class="story-text">penduduk berusia produktif (15–64 tahun) — bonus demografi masih berjalan</div></div>
+    <div class="story"><div class="story-num">1 dari 5</div><div class="story-text">balita masih mengalami stunting — turun dari 21,5% (2023) ke 19,8% (2024)</div></div>
   </section>
 
   <section class="kpi-grid" aria-label="Angka kunci 2024">${kpis}</section>
@@ -149,10 +194,10 @@ export function viewPenduduk(state) {
   return `
   ${sectionHead('Penduduk', 'Siapa saja 281,6 juta penduduk Indonesia, di mana mereka tinggal, dan bagaimana komposisinya.')}
   <section class="kpi-grid small">
-    ${kpiCard({ value: '281,6 jt', label: 'Penduduk pertengahan 2024', source: 'BPS' })}
-    ${kpiCard({ value: '+1,04%', label: 'Laju pertumbuhan 2024', source: 'BPS' })}
-    ${kpiCard({ value: '149', label: 'Kepadatan (jiwa/km²)', source: 'BPS' })}
-    ${kpiCard({ value: '45,05', label: 'Rasio ketergantungan (SUPAS 2025)', source: 'BPS' })}
+    ${kpiCard({ value: '281,6 jt', label: 'Penduduk pertengahan 2024', source: 'BPS', delta: '▲ +1,04% dari 2023', deltaDir: 'good', spark: POPULATION_BY_YEAR.map((r) => r.pop), accent: 'teal' })}
+    ${kpiCard({ value: '+1,04%', label: 'Laju pertumbuhan 2024', source: 'BPS', delta: '▼ 0,02 poin dari 2023', deltaDir: 'bad', spark: POPULATION_BY_YEAR.map((r) => r.pop), accent: 'teal' })}
+    ${kpiCard({ value: '149', label: 'Kepadatan (jiwa/km²)', source: 'BPS', spark: POPULATION_BY_YEAR.map((r) => r.pop), accent: 'teal' })}
+    ${kpiCard({ value: '45,05', label: 'Rasio ketergantungan (SUPAS 2025)', source: 'BPS', accent: 'teal' })}
   </section>
   ${chartCard('pop-chart', 'Jumlah penduduk 2015–2024', 'Penduduk pertengahan tahun dalam juta jiwa. Pilih rentang tahun atau ubah jenis grafiknya.', popChartHtml(state.popRange, state.popType), 'BPS, Proyeksi Penduduk &amp; Sensus Penduduk 2020', `<div class="controls">${rangeButtons(state.popRange)}${toggleButtons('pop', state.popType)}</div>`)}
   <section class="split">
@@ -189,17 +234,17 @@ export function viewEkonomi(state) {
   return `
   ${sectionHead('Ekonomi', 'Seberapa besar ekonomi Indonesia, seberapa cepat tumbuhnya, dan sektor apa yang menopangnya.')}
   <section class="kpi-grid small">
-    ${kpiCard({ value: 'Rp22.139 T', label: 'PDB harga berlaku 2024', source: 'BPS' })}
-    ${kpiCard({ value: '5,03%', label: 'Pertumbuhan ekonomi 2024', source: 'BPS' })}
-    ${kpiCard({ value: 'Rp78,6 jt', label: 'PDB per kapita 2024', source: 'BPS' })}
-    ${kpiCard({ value: 'US$4.960', label: 'PDB per kapita 2024 (dolar AS)', source: 'BPS' })}
+    ${kpiCard({ value: 'Rp22.139 T', label: 'PDB harga berlaku 2024', source: 'BPS', delta: '▲ +5,98% dari 2023', deltaDir: 'good', spark: GDP_NOMINAL.map((r) => r.value), sparkColor: '#c96f2e', accent: 'amber' })}
+    ${kpiCard({ value: '5,03%', label: 'Pertumbuhan ekonomi 2024', source: 'BPS', delta: '▼ 0,02 poin dari 2023', deltaDir: 'bad', spark: GDP_GROWTH.map((r) => r.value), sparkColor: '#b4452f', accent: 'green' })}
+    ${kpiCard({ value: 'Rp78,6 jt', label: 'PDB per kapita 2024', source: 'BPS', delta: '▲ +4,87% dari 2023', deltaDir: 'good', spark: GDP_NOMINAL.map((g) => g.value / POPULATION_BY_YEAR.find((x) => x.year === g.year).pop), sparkColor: '#c96f2e', accent: 'amber' })}
+    ${kpiCard({ value: 'US$4.960', label: 'PDB per kapita 2024 (dolar AS)', source: 'BPS', spark: GDP_NOMINAL.map((g) => g.value / POPULATION_BY_YEAR.find((x) => x.year === g.year).pop), sparkColor: '#c96f2e', accent: 'amber' })}
   </section>
   ${chartCard('gdp-chart', 'PDB 2019–2024', 'Produk Domestik Bruto atas dasar harga berlaku, triliun rupiah. Sempat turun pada 2020 karena pandemi, lalu pulih dan menembus Rp22 ribu triliun pada 2024.', gdpChartHtml(state.gdpType), 'BPS, Berita Resmi Statistik', toggleButtons('gdp', state.gdpType))}
   <section class="split">
     <div class="card chart-card">
       <div class="card-head"><h3>Pertumbuhan ekonomi 2015–2024</h3></div>
       <p class="card-blurb">Setelah kontraksi −2,07% pada 2020, ekonomi tumbuh di atas 5% tiga tahun beruntun.</p>
-      ${lineChart(growth, { title: 'Pertumbuhan ekonomi', format: (v) => fmtId(v, 2) + '%' })}
+      ${lineChart(growth, { title: 'Pertumbuhan ekonomi', format: (v) => fmtId(v, 2) + '%', annotations: [{ index: 5, text: 'COVID-19: −2,07%' }] })}
       ${SRC('BPS, Berita Resmi Statistik')}
     </div>
     <div class="card chart-card">
@@ -212,8 +257,12 @@ export function viewEkonomi(state) {
   <section class="card">
     <h3>Lima sektor terbesar dalam PDB 2024</h3>
     <p class="card-blurb">Industri pengolahan tetap tulang punggung ekonomi dengan pangsa 18,98%. Lima sektor terbesar mencakup 63,90% PDB.</p>
-    ${hbarChart(sectors.slice(0, 5), { title: 'Pangsa PDB menurut lapangan usaha', labelWidth: 250, format: (v) => fmtId(v, 2) + '%' })}
-    <ul class="fact-list two-col">${sectorRows}</ul>
+    <div class="donut-wrap">
+      ${donutChart(GDP_SECTORS.map((s, i) => ({ label: s.sector, value: s.pct, color: ['#0e4d3a', '#14684f', '#2a7f6f', '#5cb58a', '#f2b25c', '#c96f2e'][i] })), { title: 'Pangsa PDB menurut lapangan usaha', center: '63,90%', centerSub: '5 sektor terbesar' })}
+      <ul class="donut-legend">
+        ${GDP_SECTORS.map((s, i) => `<li><i style="background:${['#0e4d3a', '#14684f', '#2a7f6f', '#5cb58a', '#f2b25c', '#c96f2e'][i]}"></i><strong>${fmtId(s.pct, 2)}%</strong> — ${s.sector}</li>`).join('')}
+      </ul>
+    </div>
     ${SRC('BPS, Berita Resmi Statistik 5 Februari 2025')}
   </section>`;
 }
@@ -275,10 +324,10 @@ export function viewPendidikan() {
   return `
   ${sectionHead('Pendidikan', 'Seberapa jauh pendidikan Indonesia melangkah: melek aksara, lama sekolah, dan IPM.')}
   <section class="kpi-grid small">
-    ${kpiCard({ value: '96,67%', label: 'Melek aksara 15+ tahun, 2024', source: 'BPS' })}
-    ${kpiCard({ value: '13,21 thn', label: 'Harapan lama sekolah, 2024', source: 'BPS' })}
-    ${kpiCard({ value: '8,85 thn', label: 'Rata-rata lama sekolah, 2024', source: 'BPS' })}
-    ${kpiCard({ value: '75,02', label: 'IPM 2024 (kategori Tinggi)', source: 'BPS' })}
+    ${kpiCard({ value: '96,67%', label: 'Melek aksara 15+ tahun, 2024', source: 'BPS', delta: '▲ +0,14 poin dari 2023', deltaDir: 'good', spark: LITERACY.map((r) => r.value), accent: 'teal' })}
+    ${kpiCard({ value: '13,21 thn', label: 'Harapan lama sekolah, 2024', source: 'BPS', accent: 'teal' })}
+    ${kpiCard({ value: '8,85 thn', label: 'Rata-rata lama sekolah, 2024', source: 'BPS', accent: 'teal' })}
+    ${kpiCard({ value: '75,02', label: 'IPM 2024 (kategori Tinggi)', source: 'BPS', delta: '▲ +0,63 poin dari 2023', deltaDir: 'good', spark: HDI.map((r) => r.value), accent: 'teal' })}
   </section>
   <section class="split">
     <div class="card chart-card">
@@ -312,10 +361,10 @@ export function viewKesehatan() {
   return `
   ${sectionHead('Kesehatan', 'Harapan hidup makin panjang, stunting makin turun — tapi pekerjaan rumah masih besar.')}
   <section class="kpi-grid small">
-    ${kpiCard({ value: '74,15 thn', label: 'Umur harapan hidup saat lahir, 2024', source: 'BPS' })}
-    ${kpiCard({ value: '19,8%', label: 'Stunting balita, 2024', source: 'Kemenkes' })}
-    ${kpiCard({ value: '7,4%', label: 'Wasting balita, 2024', source: 'Kemenkes' })}
-    ${kpiCard({ value: '3,4%', label: 'Balita gizi lebih, 2024', source: 'Kemenkes' })}
+    ${kpiCard({ value: '74,15 thn', label: 'Umur harapan hidup saat lahir, 2024', source: 'BPS', accent: 'teal' })}
+    ${kpiCard({ value: '19,8%', label: 'Stunting balita, 2024', source: 'Kemenkes', delta: '▼ 1,7 poin dari 2023 — melampaui target 20,1%', deltaDir: 'good', spark: STUNTING.map((r) => r.value), sparkColor: '#14684f', accent: 'green' })}
+    ${kpiCard({ value: '7,4%', label: 'Wasting balita, 2024', source: 'Kemenkes', accent: 'green' })}
+    ${kpiCard({ value: '3,4%', label: 'Balita gizi lebih, 2024', source: 'Kemenkes', accent: 'green' })}
   </section>
   <section class="split">
     <div class="card chart-card">
@@ -355,6 +404,11 @@ export function provinceRows(rows, sortKey, sortDir) {
 export function viewProvinsi() {
   return `
   ${sectionHead('38 Provinsi', 'Semua provinsi, dari Jawa Barat yang 50,35 juta jiwa sampai Papua Selatan yang 542 ribu jiwa. Ketik untuk mencari, klik judul kolom untuk mengurutkan.')}
+  <section class="card">
+    <h3>Peta penduduk 2024</h3>
+    <p class="card-blurb">Satu petak untuk satu provinsi, disusun mengikuti letak geografisnya dan diwarnai menurut jumlah penduduk. Tiga petak terakota adalah tiga provinsi terpadat: Jawa Barat, Jawa Timur, dan Jawa Tengah.</p>
+    ${tileMapBlock(false)}
+  </section>
   <section class="card">
     <div class="prov-tools">
       <label class="search-box">Cari provinsi

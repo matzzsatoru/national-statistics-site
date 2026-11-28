@@ -208,3 +208,64 @@ export function fmtId(n, decimals = 0) {
 export function fmtPopThousands(thousands) {
   return fmtId(thousands / 1000, 2) + ' jt';
 }
+
+// ---- Peta petak (tile grid map) Indonesia ----
+// Skema 14 kolom x 7 baris, posisi kira-kira geografis (bukan peta akurat:
+// tiap provinsi satu petak, supaya bentuk kepulauan tetap terbaca).
+// col: barat -> timur, row: utara -> selatan.
+export const TILEMAP = [
+  { name: 'Aceh', col: 0, row: 0 },
+  { name: 'Sumatera Utara', col: 1, row: 1 },
+  { name: 'Riau', col: 2, row: 1 },
+  { name: 'Kepulauan Riau', col: 3, row: 1 },
+  { name: 'Kalimantan Utara', col: 8, row: 1 },
+  { name: 'Sulawesi Utara', col: 10, row: 1 },
+  { name: 'Sumatera Barat', col: 1, row: 2 },
+  { name: 'Jambi', col: 2, row: 2 },
+  { name: 'Kepulauan Bangka Belitung', col: 3, row: 2 },
+  { name: 'Kalimantan Barat', col: 5, row: 2 },
+  { name: 'Kalimantan Timur', col: 7, row: 2 },
+  { name: 'Gorontalo', col: 9, row: 2 },
+  { name: 'Maluku Utara', col: 11, row: 2 },
+  { name: 'Bengkulu', col: 1, row: 3 },
+  { name: 'Sumatera Selatan', col: 2, row: 3 },
+  { name: 'Kalimantan Tengah', col: 6, row: 3 },
+  { name: 'Sulawesi Barat', col: 8, row: 3 },
+  { name: 'Sulawesi Tengah', col: 9, row: 3 },
+  { name: 'Maluku', col: 11, row: 3 },
+  { name: 'Papua Barat', col: 12, row: 3 },
+  { name: 'Lampung', col: 2, row: 4 },
+  { name: 'Banten', col: 3, row: 4 },
+  { name: 'Kalimantan Selatan', col: 7, row: 4 },
+  { name: 'Sulawesi Selatan', col: 8, row: 4 },
+  { name: 'Sulawesi Tenggara', col: 9, row: 4 },
+  { name: 'Papua Barat Daya', col: 11, row: 4 },
+  { name: 'Papua Tengah', col: 12, row: 4 },
+  { name: 'Papua', col: 13, row: 4 },
+  { name: 'DKI Jakarta', col: 4, row: 5 },
+  { name: 'Jawa Barat', col: 5, row: 5 },
+  { name: 'Jawa Tengah', col: 6, row: 5 },
+  { name: 'Jawa Timur', col: 7, row: 5 },
+  { name: 'Bali', col: 8, row: 5 },
+  { name: 'Nusa Tenggara Barat', col: 9, row: 5 },
+  { name: 'Nusa Tenggara Timur', col: 10, row: 5 },
+  { name: 'Papua Pegunungan', col: 12, row: 5 },
+  { name: 'DI Yogyakarta', col: 6, row: 6 },
+  { name: 'Papua Selatan', col: 13, row: 6 },
+];
+
+// Penduduk tiap provinsi menurut namanya (ribu jiwa), untuk pewarnaan peta.
+export function popByName(name) {
+  const p = PROVINCES.find((x) => x.name === name);
+  return p ? p.pop : 0;
+}
+
+// Jenjang warna peta menurut jumlah penduduk (ribu jiwa).
+// 0: <3 jt, 1: 3–5 jt, 2: 5–10 jt, 3: 10–30 jt, 4: >30 jt (tiga terpadat).
+export function popBucket(popThousands) {
+  if (popThousands >= 30000) return 4;
+  if (popThousands >= 10000) return 3;
+  if (popThousands >= 5000) return 2;
+  if (popThousands >= 3000) return 1;
+  return 0;
+}

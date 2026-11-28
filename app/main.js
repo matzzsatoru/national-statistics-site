@@ -103,8 +103,21 @@ function renderProvRows() {
   });
 }
 
-// ---- Pengendali: delegasi klik & ketik di dalam #app ----
+// ---- Peta petak: klik petak -> info provinsi ----
 app.addEventListener('click', (event) => {
+  const tile = event.target.closest('.tile');
+  if (tile) {
+    const name = tile.getAttribute('data-prov');
+    const p = PROVINCES.find((x) => x.name === name);
+    const readout = document.getElementById('map-readout');
+    if (p && readout) {
+      const share = ((p.pop / 281603.8) * 100).toFixed(2).replace('.', ',');
+      const jt = (p.pop / 1000).toFixed(2).replace('.', ',');
+      readout.innerHTML = `<strong>${p.name}</strong> — ${jt} juta jiwa (${share}% penduduk Indonesia), wilayah ${p.region}. Peringkat ${PROVINCES.indexOf(p) + 1} dari 38 provinsi.`;
+      document.querySelectorAll('.tile').forEach((t) => t.classList.toggle('selected', t === tile));
+    }
+    return;
+  }
   const rangeBtn = event.target.closest('[data-range]');
   if (rangeBtn) {
     state.popRange = rangeBtn.getAttribute('data-range');
